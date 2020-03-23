@@ -1,7 +1,9 @@
 package lab04.eim.systems.cs.pub.contactsmanager;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -19,6 +22,8 @@ public class ContactsManagerActivity extends AppCompatActivity {
     Button showHide, Save, Cancel;
     LinearLayout hiddenFields;
     EditText Name, Phone, Email, Address, Company, JobTitle, Website, Im;
+
+    final int CONTACTS_MANAGER_REQUEST_CODE = 2020;
 
     class MyListener implements View
 
@@ -71,9 +76,10 @@ public class ContactsManagerActivity extends AppCompatActivity {
                         contactData.add(imRow);
                     }
                     intent.putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, contactData);
-                    startActivity(intent);
+                    startActivityForResult(intent, CONTACTS_MANAGER_REQUEST_CODE);
                     break;
                 case R.id.buttonCancel:
+                    setResult(Activity.RESULT_CANCELED, new Intent());
                     finish();
                     break;
                 case R.id.buttonShowHide:
@@ -97,10 +103,6 @@ public class ContactsManagerActivity extends AppCompatActivity {
         Save = (Button)findViewById(R.id.buttonSave);
         Cancel = (Button)findViewById(R.id.buttonCancel);
         hiddenFields = (LinearLayout) findViewById(R.id.layout);
-        MyListener lst = new MyListener();
-        showHide.setOnClickListener(lst);
-        Save.setOnClickListener(lst);
-        Cancel.setOnClickListener(lst);
 
         Name = findViewById(R.id.editName);
         Phone = findViewById(R.id.editNumber);
@@ -111,5 +113,43 @@ public class ContactsManagerActivity extends AppCompatActivity {
         Website = findViewById(R.id.editWebsite);
         Im = findViewById(R.id.editIM);
 
+        Intent intentFromParent = getIntent();
+        if (intentFromParent != null) {
+            System.out.println("In here");
+            Bundle b = intentFromParent.getExtras();
+            String phoneNumber = (String)b.get("lab04.eim.systems.cs.pub.ro.contactsmanager.PHONE_NUMBER_KEY");
+            // Log.d("mdebug", phoneNumber);
+
+            if (phoneNumber != null) {
+                Phone.getText().insert(0, phoneNumber);
+            } else {
+                Toast.makeText(this, getResources().getString(R.string.phone_error), Toast.LENGTH_LONG).show();
+            }
+
+
+
+            /* Intent intentToParent = new Intent();
+            intentToParent.putExtra("ro.pub.cs.systems.eim.lab04.anotherKey", anotherValue);
+            setResult(RESULT_OK, intentToParent);
+            finish();*/
+        }
+
+        MyListener lst = new MyListener();
+        showHide.setOnClickListener(lst);
+        Save.setOnClickListener(lst);
+        Cancel.setOnClickListener(lst);
+
+
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        switch(requestCode) {
+            case CONTACTS_MANAGER_REQUEST_CODE:
+                setResult(resultCode, new Intent());
+                finish();
+                break;
+        }
     }
 }
